@@ -1,30 +1,74 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
+import React from 'react';
 
-export function AnimatedCounter({ value, duration = 1000 }: { value: number; duration?: number }) {
-    const [count, setCount] = useState(0);
+export const AnimatedCounter = React.memo(function AnimatedCounter({ value, duration = 1000 }: { value: number; duration?: number }) {
+    const [count, setCount] = useState(value);
+    const prevValueRef = useRef(value);
+    const animationFrameRef = useRef<number | null>(null);
+    const isFirstRender = useRef(true);
 
     useEffect(() => {
-        let start = 0;
+        // On first render, just set the value without animation
+        if (isFirstRender.current) {
+            setCount(value);
+            prevValueRef.current = value;
+            isFirstRender.current = false;
+            return;
+        }
+
+        // Only animate if value actually changed significantly (more than 1)
+        if (Math.abs(prevValueRef.current - value) < 1) {
+            if (prevValueRef.current !== value) {
+                setCount(value);
+                prevValueRef.current = value;
+            }
+            return;
+        }
+
+        const start = prevValueRef.current;
         const end = value;
-        if (start === end) return;
+        
+        // Cancel any ongoing animation
+        if (animationFrameRef.current !== null) {
+            cancelAnimationFrame(animationFrameRef.current);
+            animationFrameRef.current = null;
+        }
 
-        const incrementTime = (duration / end) * 0.5; // rudimentary
+        // Only animate if difference is significant
+        if (Math.abs(end - start) < 1) {
+            setCount(end);
+            prevValueRef.current = end;
+            return;
+        }
 
-        // Better implementation
+        // Better implementation with proper cleanup
         let startTime: number | null = null;
         const step = (timestamp: number) => {
             if (!startTime) startTime = timestamp;
             const progress = Math.min((timestamp - startTime) / duration, 1);
-            setCount(Math.floor(progress * (end - start) + start));
+            const currentValue = Math.floor(progress * (end - start) + start);
+            setCount(currentValue);
+            
             if (progress < 1) {
-                window.requestAnimationFrame(step);
+                animationFrameRef.current = window.requestAnimationFrame(step);
+            } else {
+                setCount(end);
+                prevValueRef.current = end;
+                animationFrameRef.current = null;
             }
         };
 
-        window.requestAnimationFrame(step);
+        animationFrameRef.current = window.requestAnimationFrame(step);
 
+        // Cleanup function
+        return () => {
+            if (animationFrameRef.current !== null) {
+                cancelAnimationFrame(animationFrameRef.current);
+                animationFrameRef.current = null;
+            }
+        };
     }, [value, duration]);
 
     return <span>{count.toLocaleString()}</span>;
-}
+});

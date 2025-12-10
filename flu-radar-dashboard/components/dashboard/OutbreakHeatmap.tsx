@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { MapPin, TrendingUp, AlertTriangle, Users, Clock, Pill, Activity, X } from 'lucide-react';
 
-const OutbreakHeatmap = () => {
+const OutbreakHeatmapComponent = () => {
     const [selectedPincode, setSelectedPincode] = useState<any>(null);
     const [hoverPincode, setHoverPincode] = useState<any>(null);
     const [timeRange, setTimeRange] = useState('24h');
@@ -302,4 +302,5 @@ const OutbreakHeatmap = () => {
     );
 };
 
+const OutbreakHeatmap = React.memo(OutbreakHeatmapComponent);
 export default OutbreakHeatmap;

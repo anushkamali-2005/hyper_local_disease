@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { Globe, TrendingDown, TrendingUp, Minus } from 'lucide-react';
 import { diseaseAPI } from '@/lib/api-client';
 
-export const NationalHealthTicker = () => {
+const NationalHealthTickerComponent = () => {
     const [stats, setStats] = useState<any>(null);
     const [dailyTests, setDailyTests] = useState<string>("0");
 
@@ -62,3 +62,6 @@ export const NationalHealthTicker = () => {
         </div>
     );
 };
+
+const NationalHealthTicker = React.memo(NationalHealthTickerComponent);
+export default NationalHealthTicker;

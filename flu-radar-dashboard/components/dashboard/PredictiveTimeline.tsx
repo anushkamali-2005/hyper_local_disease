@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { TrendingUp, AlertCircle, CheckCircle, Clock, Brain } from 'lucide-react';
 
-const PredictiveTimeline = () => {
+const PredictiveTimelineComponent = () => {
     const [selectedDisease, setSelectedDisease] = useState('flu');
 
     // Simulated forecast data
@@ -267,4 +267,5 @@ const PredictiveTimeline = () => {
     );
 };
 
+const PredictiveTimeline = React.memo(PredictiveTimelineComponent);
 export default PredictiveTimeline;

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Activity, MapPin, Clock, TrendingUp } from 'lucide-react';
 import { apiClient } from '@/lib/api-client';
 
-const LiveActivityFeed = () => {
+const LiveActivityFeedComponent = () => {
     const [activities, setActivities] = useState<any[]>([]);
     const [isLive, setIsLive] = useState(true);
 
@@ -58,8 +58,8 @@ const LiveActivityFeed = () => {
             }
         };
 
-        // Add new activity every 2 seconds
-        const interval = setInterval(addActivity, 2000); // 2s interval
+        // Add new activity every 15 seconds (further reduced to prevent blinking)
+        const interval = setInterval(addActivity, 15000); // 15s interval
 
         return () => clearInterval(interval);
     }, [isLive]);
@@ -194,4 +194,5 @@ const LiveActivityFeed = () => {
     );
 };
 
+const LiveActivityFeed = React.memo(LiveActivityFeedComponent);
 export default LiveActivityFeed;

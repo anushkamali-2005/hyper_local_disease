@@ -38,7 +38,7 @@ const weatherAPI = {
     }
 };
 
-const RealTimeDashboard = () => {
+const RealTimeDashboardComponent = () => {
     const [liveData, setLiveData] = useState<any>({
         covid: null,
         weather: null,
@@ -82,26 +82,28 @@ const RealTimeDashboard = () => {
                         }
                     }
 
-                    setLiveData({
+                    // Use functional update to avoid stale closure and prevent unnecessary re-renders
+                    setLiveData((prev: any) => ({
                         covid: covidData,
-                        weather: weatherData?.current_condition?.[0] || liveData.weather, // Keep old weather if new fails
+                        weather: weatherData?.current_condition?.[0] || prev.weather, // Keep old weather if new fails
                         trends: trends.slice(-7),
                         lastUpdate: new Date(),
                         isConnected: true,
                         dailyFallBack: dailyFallBack > 0 ? dailyFallBack : 0
-                    });
+                    }));
                 } else {
                     // If data fetch failed but we have previous data, just mark connected=false but keep data
-                    if (!liveData.covid) {
-                        // Only if we have NO data at all do we treat it as a failure that affects UI
-                        console.warn("Initial data fetch failed");
-                    }
+                    setLiveData((prev: any) => {
+                        if (!prev.covid) {
+                            // Only if we have NO data at all do we treat it as a failure that affects UI
+                            console.warn("Initial data fetch failed");
+                        }
+                        return prev; // Don't update if we have existing data
+                    });
                 }
-
-                setLoading(false);
             } catch (error) {
                 console.error('Failed to fetch real data:', error);
-                // Keep old data on error
+                // Keep old data on error - no state update needed
             }
         };
 
@@ -109,7 +111,7 @@ const RealTimeDashboard = () => {
         const interval = setInterval(fetchRealData, 60000); // Update every minute
 
         return () => clearInterval(interval);
-    }, []);
+    }, []); // Empty deps is fine since we use functional updates
 
     // Simulate outbreak spike (for demo purposes)
     const triggerDemoSpike = () => {
@@ -272,4 +274,5 @@ const RealTimeDashboard = () => {
     );
 };
 
+const RealTimeDashboard = React.memo(RealTimeDashboardComponent);
 export default RealTimeDashboard;

@@ -1,10 +1,11 @@
 "use client";
 import { useState, useMemo } from 'react';
+import React from 'react';
 import { Card } from "@/components/ui/card";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine, Label, ReferenceDot, Area, ComposedChart } from 'recharts';
 import { Filter, AlertCircle, Info } from 'lucide-react';
 
-export function TrendChart({ data }) {
+function TrendChartComponent({ data }: { data: any }) {
     const [activeFilter, setActiveFilter] = useState('All');
 
     // Enhanced Data Processing for Demo
@@ -205,3 +206,5 @@ export function TrendChart({ data }) {
         </Card>
     );
 }
+
+export const TrendChart = React.memo(TrendChartComponent);

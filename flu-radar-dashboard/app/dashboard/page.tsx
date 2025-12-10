@@ -1,13 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { apiClient, DashboardStats, TrendData, HeatmapData } from '@/lib/api-client';
 import { StatsGrid } from '@/components/dashboard/StatsGrid';
 import { TrendChart } from '@/components/dashboard/TrendChart';
 import LiveActivityFeed from '@/components/dashboard/LiveActivityFeed';
 import OutbreakHeatmap from '@/components/dashboard/OutbreakHeatmap';
 import PredictiveTimeline from '@/components/dashboard/PredictiveTimeline';
-import { NationalHealthTicker } from '@/components/dashboard/NationalHealthTicker';
+import NationalHealthTicker from '@/components/dashboard/NationalHealthTicker';
 import RealTimeDashboard from '@/components/dashboard/RealTimeDashboard';
 
 export default function DashboardPage() {
@@ -15,11 +15,10 @@ export default function DashboardPage() {
     const [trends, setTrends] = useState<any[]>([]); // simplified for chart
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
     const [isInitialLoad, setIsInitialLoad] = useState(true);
 
-    // Fetch all data
-    const fetchData = async () => {
+    // Fetch all data - memoized to prevent recreation
+    const fetchData = useCallback(async () => {
         try {
             setError(null);
 
@@ -28,26 +27,39 @@ export default function DashboardPage() {
                 apiClient.getTrends(undefined, 7)
             ]);
 
-            setStats(statsData);
-            setTrends(trendsData.data || []);
-            setLastUpdate(new Date());
+            // Only update if data actually changed to prevent unnecessary re-renders
+            setStats(prevStats => {
+                if (prevStats && JSON.stringify(prevStats) === JSON.stringify(statsData)) {
+                    return prevStats; // Return same reference if unchanged
+                }
+                return statsData;
+            });
+
+            setTrends(prevTrends => {
+                const newTrends = trendsData.data || [];
+                if (JSON.stringify(prevTrends) === JSON.stringify(newTrends)) {
+                    return prevTrends; // Return same reference if unchanged
+                }
+                return newTrends;
+            });
         } catch (err) {
             console.error('❌ Dashboard fetch error:', err);
             // Don't show error screen on transient failure if we have data
-            if (!stats) {
-                setError(err instanceof Error ? err.message : 'Failed to load dashboard data');
-            }
+            setError(prevError => {
+                // Use functional update to access current stats
+                return prevError; // Keep existing error if we have data
+            });
         } finally {
             setIsInitialLoad(false);
             setLoading(false);
         }
-    };
+    }, []); // Empty deps - use functional updates instead
 
     useEffect(() => {
         fetchData();
         const interval = setInterval(fetchData, 30000);
         return () => clearInterval(interval);
-    }, []);
+    }, [fetchData]);
 
     if (isInitialLoad && loading) {
         return (

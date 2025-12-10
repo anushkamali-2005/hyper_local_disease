@@ -1,8 +1,9 @@
 import { Card } from "@/components/ui/card";
 import { Activity, AlertTriangle, MapPin, ShieldCheck } from "lucide-react";
 import { AnimatedCounter } from "@/components/ui/AnimatedCounter";
+import React from "react";
 
-export function StatsGrid({ stats }) {
+function StatsGridComponent({ stats }: { stats: any }) {
     if (!stats) return null;
 
     return (
@@ -55,3 +56,5 @@ export function StatsGrid({ stats }) {
         </div>
     );
 }
+
+export const StatsGrid = React.memo(StatsGridComponent);
