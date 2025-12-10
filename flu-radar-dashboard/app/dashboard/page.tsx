@@ -8,6 +8,7 @@ import LiveActivityFeed from '@/components/dashboard/LiveActivityFeed';
 import OutbreakHeatmap from '@/components/dashboard/OutbreakHeatmap';
 import PredictiveTimeline from '@/components/dashboard/PredictiveTimeline';
 import { NationalHealthTicker } from '@/components/dashboard/NationalHealthTicker';
+import RealTimeDashboard from '@/components/dashboard/RealTimeDashboard';
 
 export default function DashboardPage() {
     const [stats, setStats] = useState<DashboardStats | null>(null);
@@ -15,12 +16,11 @@ export default function DashboardPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
+    const [isInitialLoad, setIsInitialLoad] = useState(true);
 
     // Fetch all data
     const fetchData = async () => {
         try {
-            // Don't set loading true on refresh to avoid flash
-            if (!stats) setLoading(true);
             setError(null);
 
             const [statsData, trendsData] = await Promise.all([
@@ -38,6 +38,7 @@ export default function DashboardPage() {
                 setError(err instanceof Error ? err.message : 'Failed to load dashboard data');
             }
         } finally {
+            setIsInitialLoad(false);
             setLoading(false);
         }
     };
@@ -48,7 +49,7 @@ export default function DashboardPage() {
         return () => clearInterval(interval);
     }, []);
 
-    if (loading) {
+    if (isInitialLoad && loading) {
         return (
             <div className="min-h-screen bg-gray-50 flex items-center justify-center">
                 <div className="text-center">
@@ -127,6 +128,11 @@ export default function DashboardPage() {
                 {/* 3. Predictive Analysis */}
                 <section>
                     <PredictiveTimeline />
+                </section>
+
+                {/* 4. External Validation Layer */}
+                <section>
+                    <RealTimeDashboard />
                 </section>
             </main>
 
